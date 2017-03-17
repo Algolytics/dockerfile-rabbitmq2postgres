@@ -1,2 +1,15 @@
 # dockerfile-rabbitmq2postgres
 
+Local usage example:
+
+RABBIT_USER=user
+RABBIT_PASSWORD=bitnami
+RABBIT_HOST=localhost
+RABBIT_PORT=5672
+RABBIT_QUEUE=sce-postgres-data-queue
+POSTGRES_DBNAME=postgres2
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=localhost
+
+python ./rabbit2postgres.py $RABBIT_USER $RABBIT_PASSWORD $RABBIT_HOST $RABBIT_PORT $RABBIT_QUEUE $POSTGRES_DBNAME $POSTGRES_USER $POSTGRES_PASSWORD $POSTGRES_HOST
