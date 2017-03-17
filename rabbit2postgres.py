@@ -37,22 +37,22 @@ class PostgresHelper:
         for table_name, columns_insert in self.tableinfo.items():
             try:
                 print "Inserting buffered data into table " + str(table_name) + "..."
-                q_create_table = "CREATE TABLE IF NOT EXISTS " + str(
-                    table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
+                q_create_table = "CREATE TABLE IF NOT EXISTS web_events." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
                     [str(k1) for k1 in columns_insert]) + " text default null)"
+                print str(q_create_table)
                 self.cursor.execute(q_create_table)
-                q_get_columns = "SELECT column_name FROM information_schema.columns WHERE table_name = '" + str(
-                    table_name) + "'"
+                q_get_columns = "SELECT column_name FROM information_schema.columns WHERE table_schema = 'web_events' AND table_name = '" + str(table_name) + "'"
+                print str(q_get_columns)
                 self.cursor.execute(q_get_columns)
                 columns_existing = [k[0] for k in self.cursor.fetchall()]
                 for k in columns_insert:
                     if not k.lower() in columns_existing:
-                        q_add_column = "ALTER TABLE " + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
+                        q_add_column = "ALTER TABLE web_events." + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
                         self.cursor.execute(q_add_column)
                 c = 0
                 for d in self.data_buffer:
                     if d[0] == table_name:
-                        q_insert = "INSERT INTO " + d[0] + " (" + ", ".join(
+                        q_insert = "INSERT INTO web_events." + d[0] + " (" + ", ".join(
                             [str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join(
                             [str(v) for k, v in d[1].items()]) + ");"
                         self.cursor.execute(q_insert)
