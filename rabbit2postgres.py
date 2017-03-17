@@ -36,13 +36,12 @@ class PostgresHelper:
     def insert_data_buffer(self):
         for table_name, columns_insert in self.tableinfo.items():
             try:
+#		self.cursor.execute("BEGIN")
                 print "Inserting buffered data into table " + str(table_name) + "..."
                 q_create_table = "CREATE TABLE IF NOT EXISTS web_events." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
                     [str(k1) for k1 in columns_insert]) + " text default null)"
-                print str(q_create_table)
                 self.cursor.execute(q_create_table)
                 q_get_columns = "SELECT column_name FROM information_schema.columns WHERE table_schema = 'web_events' AND table_name = '" + str(table_name) + "'"
-                print str(q_get_columns)
                 self.cursor.execute(q_get_columns)
                 columns_existing = [k[0] for k in self.cursor.fetchall()]
                 for k in columns_insert:
@@ -57,6 +56,7 @@ class PostgresHelper:
                             [str(v) for k, v in d[1].items()]) + ");"
                         self.cursor.execute(q_insert)
                         c = c + 1
+#		self.cursor.execute("COMMIT")
                 self.conn.commit()
                 print "Inserted " + str(c) + " rows."
             except:
