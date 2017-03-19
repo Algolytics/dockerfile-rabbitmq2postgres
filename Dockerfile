@@ -20,5 +20,4 @@ ADD rabbit2postgres.py /rabbit2postgres.py
 
 # Set the default command to execute    
 # when creating a new container
-CMD python /rabbit2postgres.py ${RABBIT_USER} ${RABBIT_PASSWORD} ${RABBIT_HOST} ${RABBIT_PORT} ${RABBIT_QUEUE} ${POSTGRES_DBNAME} ${POSTGRES_USER} ${POSTGRES_PASSWORD} ${POSTGRES_HOST}
-
+CMD python /rabbit2postgres.py ${RABBIT_USER} ${RABBIT_PASSWORD} ${RABBIT_HOST} ${RABBIT_PORT} ${RABBIT_QUEUE} ${POSTGRES_DBNAME} ${POSTGRES_USER} ${POSTGRES_PASSWORD} ${POSTGRES_HOST} ${POSTGRES_SCHEMA}

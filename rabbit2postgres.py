@@ -8,11 +8,12 @@ import time
 
 
 class PostgresHelper:
-    def __init__(self, postgres_dbname, postgres_user, postgres_password, postgres_host):
+    def __init__(self, postgres_dbname, postgres_user, postgres_password, postgres_host, postgres_schema):
         self.postgres_dbname = postgres_dbname
         self.postgres_user = postgres_user
         self.postgres_password = postgres_password
         self.postgres_host = postgres_host
+        self.postgres_schema = postgres_schema
         self.tableinfo = {}
         self.data_buffer = []
         self.max_data_buffer_size = 1000
@@ -38,22 +39,20 @@ class PostgresHelper:
             try:
 #		self.cursor.execute("BEGIN")
                 print "Inserting buffered data into table " + str(table_name) + "..."
-                q_create_table = "CREATE TABLE IF NOT EXISTS web_events." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
+                q_create_table = "CREATE TABLE IF NOT EXISTS " + str(self.postgres_schema) + "." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
                     [str(k1) for k1 in columns_insert]) + " text default null)"
                 self.cursor.execute(q_create_table)
-                q_get_columns = "SELECT column_name FROM information_schema.columns WHERE table_schema = 'web_events' AND table_name = '" + str(table_name) + "'"
+                q_get_columns = "SELECT column_name FROM information_schema.columns WHERE table_schema = '" + str(self.postgres_schema) + "' AND table_name = '" + str(table_name) + "'"
                 self.cursor.execute(q_get_columns)
                 columns_existing = [k[0] for k in self.cursor.fetchall()]
                 for k in columns_insert:
                     if not k.lower() in columns_existing:
-                        q_add_column = "ALTER TABLE web_events." + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
+                        q_add_column = "ALTER TABLE " + str(self.postgres_schema) + "." + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
                         self.cursor.execute(q_add_column)
                 c = 0
                 for d in self.data_buffer:
                     if d[0] == table_name:
-                        q_insert = "INSERT INTO web_events." + d[0] + " (" + ", ".join(
-                            [str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join(
-                            [str(v) for k, v in d[1].items()]) + ");"
+                        q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + d[0] + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
                         self.cursor.execute(q_insert)
                         c = c + 1
 #		self.cursor.execute("COMMIT")
@@ -94,10 +93,10 @@ class RabbitHelper:
         self.channel.start_consuming()
 
 
-if (len(sys.argv) != 10):
+if (len(sys.argv) != 11):
     raise Exception("Invalid number of arguments: " + str(len(sys.argv)))
 
-postgres_helper = PostgresHelper(sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9])
+postgres_helper = PostgresHelper(sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10])
 rabbit_helper = RabbitHelper(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5], postgres_helper)
 
 while True:
