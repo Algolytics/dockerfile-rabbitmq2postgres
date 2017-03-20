@@ -19,6 +19,7 @@ class PostgresHelper:
         self.max_data_buffer_size = 1000
 
     def create_postgres_connection(self):
+        print "Creating postgres connection..."
         self.conn = psycopg2.connect(
             "dbname=" + self.postgres_dbname + " user=" + self.postgres_user + " password=" + self.postgres_password + " host=" + self.postgres_host)
         self.cursor = self.conn.cursor()
@@ -81,6 +82,7 @@ class RabbitHelper:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def create_pika_connection(self):
+        print "Creating pika connection..."
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.rabbit_queue, durable=True)
@@ -89,10 +91,11 @@ class RabbitHelper:
         print "Pika connection created."
 
     def start_pika_consumer(self):
-        print(' [*] Waiting for messages. To exit press CTRL+C')
+        print "Waiting for messages..."
         self.channel.start_consuming()
 
-def start_consuming(postgres_helper, rabbit_helper):
+def start_app(postgres_helper, rabbit_helper):
+    print "Starting application..."
     while True:
         try:
             postgres_helper.create_postgres_connection()
@@ -119,7 +122,7 @@ rabbit_helper = RabbitHelper(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv
 
 while True:
     try:
-        start_consuming(postgres_helper, rabbit_helper)
+        start_app(postgres_helper, rabbit_helper)
     except:
         print "Unexpected application error", sys.exc_info()[0]
         time.sleep(5)
