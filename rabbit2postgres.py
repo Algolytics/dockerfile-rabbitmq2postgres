@@ -114,15 +114,17 @@ def start_app(postgres_helper, rabbit_helper):
 
     rabbit_helper.start_pika_consumer()
 
-if (len(sys.argv) != 11):
-    raise Exception("Invalid number of arguments: " + str(len(sys.argv)))
+if __name__ == "__main__":
 
-postgres_helper = PostgresHelper(sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10])
-rabbit_helper = RabbitHelper(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5], postgres_helper)
+    if (len(sys.argv) != 11):
+	raise Exception("Invalid number of arguments: " + str(len(sys.argv)))
 
-while True:
-    try:
-        start_app(postgres_helper, rabbit_helper)
-    except:
-        print "Unexpected application error", sys.exc_info()[0]
-        time.sleep(5)
+    postgres_helper = PostgresHelper(sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9], sys.argv[10])
+    rabbit_helper = RabbitHelper(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5], postgres_helper)
+
+    while True:
+	try:
+    	    start_app(postgres_helper, rabbit_helper)
+	except:
+    	    print "Unexpected application error", sys.exc_info()[0]
+    	    time.sleep(5)
