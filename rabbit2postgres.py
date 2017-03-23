@@ -3,9 +3,11 @@ import psycopg2
 import sys
 import pika
 import json
+import logging
 from sets import Set
 import time
 
+logging.basicConfig(filename='rabbit2postgres.log',level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 
 class PostgresHelper:
     def __init__(self, postgres_dbname, postgres_user, postgres_password, postgres_host, postgres_schema):
@@ -19,11 +21,11 @@ class PostgresHelper:
         self.max_data_buffer_size = 1000
 
     def create_postgres_connection(self):
-        print "Creating postgres connection..."
+        logging.info("Creating postgres connection...")
         self.conn = psycopg2.connect(
             "dbname=" + self.postgres_dbname + " user=" + self.postgres_user + " password=" + self.postgres_password + " host=" + self.postgres_host)
         self.cursor = self.conn.cursor()
-        print "Postgres connection created."
+        logging.info("Postgres connection created.")
 
     def insert_data(self, table, data):
         self.tableinfo[table] = Set()
@@ -39,7 +41,7 @@ class PostgresHelper:
         for table_name, columns_insert in self.tableinfo.items():
             try:
 #		self.cursor.execute("BEGIN")
-                print "Inserting buffered data into table " + str(table_name) + "..."
+                logging.info("Inserting buffered data into table " + str(table_name) + "...")
                 q_create_table = "CREATE TABLE IF NOT EXISTS " + str(self.postgres_schema) + "." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
                     [str(k1) for k1 in columns_insert]) + " text default null)"
                 self.cursor.execute(q_create_table)
@@ -64,9 +66,9 @@ class PostgresHelper:
 
 #		self.cursor.execute("COMMIT")
                 self.conn.commit()
-                print "Inserted " + str(c) + " rows."
+                logging.info("Inserted " + str(c) + " rows.")
             except:
-                print "Unexpected error when inserting into table " + str(table_name), sys.exc_info()[0]
+                logging.error("Unexpected error when inserting into table " + str(table_name) + " " + str(sys.exc_info()[0]))
 
 
 class RabbitHelper:
@@ -88,26 +90,26 @@ class RabbitHelper:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def create_pika_connection(self):
-        print "Creating pika connection..."
+        logging.info("Creating pika connection...")
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.rabbit_queue, durable=True)
         self.channel.basic_qos(prefetch_count=1)
         self.channel.basic_consume(self.callback, queue=self.rabbit_queue)
-        print "Pika connection created."
+        logging.info("Pika connection created.")
 
     def start_pika_consumer(self):
-        print "Waiting for messages..."
+        logging.info("Waiting for messages...")
         self.channel.start_consuming()
 
 def start_app(postgres_helper, rabbit_helper):
-    print "Starting application..."
+    logging.info("Starting application...")
     while True:
         try:
             postgres_helper.create_postgres_connection()
             break
         except:
-            print "Unexpected error when creating postgres connection", sys.exc_info()[0]
+            logging.error("Unexpected error when creating postgres connection " + str(sys.exc_info()[0]))
             time.sleep(5)
 
     while True:
@@ -115,7 +117,7 @@ def start_app(postgres_helper, rabbit_helper):
             rabbit_helper.create_pika_connection()
             break
         except:
-            print "Unexpected error when creating pika connection", sys.exc_info()[0]
+            logging.error("Unexpected error when creating pika connection " + str(sys.exc_info()[0]))
             time.sleep(5)
 
     rabbit_helper.start_pika_consumer()
@@ -132,5 +134,5 @@ if __name__ == "__main__":
 	try:
     	    start_app(postgres_helper, rabbit_helper)
 	except:
-    	    print "Unexpected application error", sys.exc_info()[0]
+    	    logging.error("Unexpected application error " + str(sys.exc_info()[0]))
     	    time.sleep(5)
