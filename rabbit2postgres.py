@@ -7,7 +7,7 @@ import logging
 from sets import Set
 import time
 
-logging.basicConfig(filename='rabbit2postgres.log',level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
 
 class PostgresHelper:
     def __init__(self, postgres_dbname, postgres_user, postgres_password, postgres_host, postgres_schema):
