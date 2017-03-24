@@ -59,10 +59,10 @@ class PostgresHelper:
                     if d[0] == table_name:
                         insert_list.append([str(v) for k, v in d[1].items()])
                         c = c+1
-                        #q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + d[0] + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
-                        #self.cursor.execute(q_insert)
-                q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + d[0] + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
-                self.cursor.execute(q_insert)
+                        q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + d[0] + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
+                        self.cursor.execute(q_insert)
+                #q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + d[0] + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
+                #self.cursor.execute(q_insert)
 
 #		self.cursor.execute("COMMIT")
                 self.conn.commit()
