@@ -27,8 +27,9 @@ class PostgresHelper:
         self.cursor = self.conn.cursor()
         logging.info("Postgres connection created.")
 
-    def insert_data(self, table, data):
-        self.tableinfo[table] = Set()
+    def insert_data_element(self, table, data):
+        if not table in self.tableinfo:
+            self.tableinfo[table] = Set()
         for k, v in data.items():
             self.tableinfo[table].add(str(k))
         self.data_buffer.append((table, data))
@@ -40,19 +41,26 @@ class PostgresHelper:
     def insert_data_buffer(self):
         for table_name, columns_insert in self.tableinfo.items():
             try:
-#		self.cursor.execute("BEGIN")
-                logging.info("Inserting buffered data into table " + str(table_name) + "...")
+                logging.info("Synchronizing table " + str(table_name) + "...")
                 q_create_table = "CREATE TABLE IF NOT EXISTS " + str(self.postgres_schema) + "." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
                     [str(k1) for k1 in columns_insert]) + " text default null)"
+                logging.debug(str(q_create_table))
                 self.cursor.execute(q_create_table)
                 q_get_columns = "SELECT column_name FROM information_schema.columns WHERE table_schema = '" + str(self.postgres_schema) + "' AND table_name = '" + str(table_name) + "'"
+                logging.debug(str(q_get_columns))
                 self.cursor.execute(q_get_columns)
                 columns_existing = [k[0] for k in self.cursor.fetchall()]
                 for k in columns_insert:
                     if not k.lower() in columns_existing:
                         q_add_column = "ALTER TABLE " + str(self.postgres_schema) + "." + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
+                        logging.debug(str(q_add_column))
                         self.cursor.execute(q_add_column)
+                self.conn.commit()
+            except:
+                logging.error("Unexpected error when synchronizing table " + str(table_name) + " " + str(sys.exc_info()[0]))
 
+            try:
+                logging.info("Inserting buffered data into table " + str(table_name) + "...")
 #                insert_list = []
                 c = 0
                 for d in self.data_buffer:
@@ -62,14 +70,12 @@ class PostgresHelper:
                         logging.debug(str(q_insert))
                         self.cursor.execute(q_insert)
                         c = c + 1
-#q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
-                #self.cursor.execute(q_insert)
-
-#		self.cursor.execute("COMMIT")
+#                q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
+#                self.cursor.execute(q_insert)
                 self.conn.commit()
                 logging.info("Inserted " + str(c) + " rows into table " + str(table_name))
             except:
-                logging.error("Unexpected error when inserting into table " + str(table_name) + " " + str(sys.exc_info()[0]))
+                logging.error("Unexpected error when inserting buffered data into table " + str(table_name) + " " + str(sys.exc_info()[0]))
 
 
 class RabbitHelper:
@@ -87,7 +93,7 @@ class RabbitHelper:
         body_obj = json.loads(body)
         table = body_obj["table"]
         data = body_obj["data"]
-        self.postgres_helper.insert_data(table, data)
+        self.postgres_helper.insert_data_element(table, data)
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def create_pika_connection(self):
