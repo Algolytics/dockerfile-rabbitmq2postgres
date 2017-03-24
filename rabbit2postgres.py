@@ -53,15 +53,15 @@ class PostgresHelper:
                         q_add_column = "ALTER TABLE " + str(self.postgres_schema) + "." + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
                         self.cursor.execute(q_add_column)
 
-                insert_list = []
+#                insert_list = []
                 c = 0
                 for d in self.data_buffer:
                     if d[0] == table_name:
-                        insert_list.append([str(v) for k, v in d[1].items()])
-                        c = c+1
+#                        insert_list.append([str(v) for k, v in d[1].items()])
                         q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
                         self.cursor.execute(q_insert)
-                #q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
+                        c = c + 1
+#q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
                 #self.cursor.execute(q_insert)
 
 #		self.cursor.execute("COMMIT")
