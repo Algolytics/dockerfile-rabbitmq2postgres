@@ -7,7 +7,7 @@ import logging
 from sets import Set
 import time
 
-logging.basicConfig(level=logging.INFO,format='%(levelname)s %(asctime)s %(message)s')
+logging.basicConfig(level=logging.DEBUG,format='%(levelname)s %(asctime)s %(message)s')
 
 class PostgresHelper:
     def __init__(self, postgres_dbname, postgres_user, postgres_password, postgres_host, postgres_schema):
@@ -18,7 +18,7 @@ class PostgresHelper:
         self.postgres_schema = postgres_schema
         self.tableinfo = {}
         self.data_buffer = []
-        self.max_data_buffer_size = 1000
+        self.max_data_buffer_size = 100
 
     def create_postgres_connection(self):
         logging.info("Creating postgres connection...")
@@ -58,7 +58,8 @@ class PostgresHelper:
                 for d in self.data_buffer:
                     if d[0] == table_name:
 #                        insert_list.append([str(v) for k, v in d[1].items()])
-                        q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
+                        q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + str(table_name) + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
+                        logging.debug(str(q_insert))
                         self.cursor.execute(q_insert)
                         c = c + 1
 #q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
