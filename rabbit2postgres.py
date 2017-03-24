@@ -67,7 +67,7 @@ class PostgresHelper:
 
 #		self.cursor.execute("COMMIT")
                 self.conn.commit()
-                logging.info("Inserted " + str(c) + " rows.")
+                logging.info("Inserted " + str(c) + " rows into table " + str(table_name))
             except:
                 logging.error("Unexpected error when inserting into table " + str(table_name) + " " + str(sys.exc_info()[0]))
 
