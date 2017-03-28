@@ -56,8 +56,9 @@ class PostgresHelper:
                         logging.debug(str(q_add_column))
                         self.cursor.execute(q_add_column)
                 self.conn.commit()
-            except:
-                logging.error("Unexpected error when synchronizing table " + str(table_name) + " " + str(sys.exc_info()[0]))
+            except Exception, e:
+                logging.error("Unexpected error when synchronizing table " + str(table_name) + ": " + e.pgerror)
+                raise e
 
             try:
                 logging.info("Inserting buffered data into table " + str(table_name) + "...")
@@ -74,9 +75,9 @@ class PostgresHelper:
 #                self.cursor.execute(q_insert)
                 self.conn.commit()
                 logging.info("Inserted " + str(c) + " rows into table " + str(table_name))
-            except:
-                logging.error("Unexpected error when inserting buffered data into table " + str(table_name) + " " + str(sys.exc_info()[0]))
-
+            except Exception, e:
+                logging.error("Unexpected error when inserting into table " + str(table_name) + ": " + e.pgerror)
+                raise e
 
 class RabbitHelper:
     def __init__(self, rabbit_user, rabbit_password, rabbit_host, rabbit_port, rabbit_queue, postgres_helper):
@@ -141,5 +142,5 @@ if __name__ == "__main__":
 	try:
     	    start_app(postgres_helper, rabbit_helper)
 	except:
-    	    logging.error("Unexpected application error " + str(sys.exc_info()[0]))
+    	    logging.error("Unexpected application error: " + str(sys.exc_info()[0]))
     	    time.sleep(5)
