@@ -67,9 +67,9 @@ class PostgresHelper:
                 for d in self.data_buffer:
                     if d[0] == table_name:
 #                        insert_list.append([str(v) for k, v in d[1].items()])
-                        q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + str(table_name) + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join([str(v) for k, v in d[1].items()]) + ");"
-                        logging.debug(str(q_insert))
-                        self.cursor.execute(q_insert)
+                        q_values = [str(v) for k, v in d[1].items()]
+                        q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + str(table_name) + " (" + ", ".join([str(k) for k, v in d[1].items()]) + ") VALUES (" + ", ".join(["%s" for k, v in d[1].items()]) + ");"
+                        self.cursor.execute(q_insert, q_values)
                         c = c + 1
 #                q_insert = "INSERT INTO " + str(self.postgres_schema) + "." + table_name + ") VALUES (" + "), (".join([", ".join([str(v) for v in x]) for x in insert_list]) + ");"
 #                self.cursor.execute(q_insert)
