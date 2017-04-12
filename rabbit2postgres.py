@@ -43,7 +43,7 @@ class PostgresHelper:
     def insert_data_buffer(self):
         for table_name, columns_insert in self.tableinfo.items():
             try:
-                logging.info("Synchronizing table " + str(table_name) + "...")
+                logging.debug("Synchronizing table " + str(table_name) + "...")
                 q_create_table = "CREATE TABLE IF NOT EXISTS " + str(self.postgres_schema) + "." + str(table_name) + " (id SERIAL PRIMARY KEY, " + " text default null, ".join(
                     [str(k1) for k1 in columns_insert]) + " text default null)"
                 logging.debug(str(q_create_table))
@@ -55,7 +55,7 @@ class PostgresHelper:
                 for k in columns_insert:
                     if not k.lower() in columns_existing:
                         q_add_column = "ALTER TABLE " + str(self.postgres_schema) + "." + str(table_name) + " ADD COLUMN " + str(k) + " text default null"
-                        logging.debug(str(q_add_column))
+                        logging.info("Updated table " + str(self.postgres_schema) + "." + str(table_name) + " for column " + str(k))
                         self.cursor.execute(q_add_column)
                 self.conn.commit()
             except Exception, e:
@@ -63,7 +63,7 @@ class PostgresHelper:
                 raise e
 
             try:
-                logging.info("Inserting buffered data into table " + str(table_name) + "...")
+                logging.debug("Inserting buffered data into table " + str(table_name) + "...")
 #                insert_list = []
                 c = 0
                 for d in self.data_buffer:
